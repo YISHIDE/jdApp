@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<script>
+  // 获取indexdb对象,为了兼容性的写法
+  // 1、获取对象
+  window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
+  window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
+  window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
+  window.IDBCursor = window.IDBCursor || window.webkitIDBCursor || window.msIDBCursor;
+//  2.定义数据库的基本信息
+var dbInfo={
+  dbName:"shop",
+  dbVersion:5.0,
+  dbInstance: {}
+}
+//  3.创建数据库
+  var request = window.indexedDB.open(dbInfo.dbName, dbInfo.dbVersion);
+//  判断数据库版本号是否更新
+  // 判断数据库版本号是够更新了（创建和修改表结构在这里操作）
+  request.onupgradeneeded = function (e) {
+    console.log(e);
+    // 4、创建数据库store(表)
+    var _db = e.target.result;
+    var storeNames = _db.objectStoreNames;
+    if(!storeNames.contains("store")){
+         _db.createObjectStore("store",{
+            keyPath:"goodsId",
+            autoIncrement:true
+         })
+    }
+  }
+//     数据库创建成功时候的方法（增删改查操作）
+  request.onsuccess=function(e){
+    var _db = e.target.result;
+    var trans = _db.transaction(["store"], "readwrite");
+    var store = trans.objectStore("store");
+//  var req=store.add({
+//      goodsId:'dfdd',
+//      prise:12.3,
+//      name:"衣服",
+//      size:"M"
+//    });
+    // 修改数据
+//    var req = store.put({
+//      goodsId: 'dfdd',
+//      prise: 12.3,
+//      name: "衣服",
+//      size: "L"
+//    })
+//    查询数据
+//    var req = store.get("dfdd");
+//    req.onsuccess=function(e){
+//      console.log(e.target.result);
+//    }
+//    req.onerror=function(){
+//
+//    }
+    // 查询所有数据
+    var cursor=store.openCursor();
+    var data=[];
+
+    cursor.onsuccess=function(e){
+      var result = e.target.result;
+      if (result && result !== null) {
+        data.push(result.value);
+        result.continue();
+      }
+      console.log(data);
+    }
+    cursor.onerror=function(){
+
+    }
+  }
+</script>
+</body>
+</html>
